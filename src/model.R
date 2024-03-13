@@ -116,5 +116,18 @@ performance::check_model(mixed_lmer)
 #probaly worth doing something about it at some point..
 mixed_lmer %>% anova()
 
+#model for ae
+#Mixed effects model (model 3)
+model3 <- lme4::lmer(
+  formula = 
+    admit_ratio ~
+    scale(total_ftes) +
+    scale(occupied_beds)+
+    covid_flag + 
+    (1|trust_code), 
+  offset = scale(trust_total_catchment),
+  data = FINAL_regression_data,
+  REML = T)
 
+summary(model3)
 

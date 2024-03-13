@@ -10,19 +10,18 @@ library(lme4)
 library(lmerTest)
 library(lmtest)
 library(performance)
-#install
-devtools::install_github('THF-evaluative-analytics/THFstyle')
-library(THFstyle)
 library(see)
 library(Gini)
 
 # Functions -----
 
-source('src/functions.R')
+source('https://raw.githubusercontent.com/zeyadissa/open_data/main/const/global_var.R')
+source('https://raw.githubusercontent.com/zeyadissa/open_data/main/src/functions.R')
+source('https://raw.githubusercontent.com/zeyadissa/open_data/main/src/ae_data.R')
 
 #Static catchment population data per trust: a better way to do this is to use the total admitted (?) or total
 #Served population from hes, but for now this will have to do for the offset.
-FINAL_trust_pop <- read.csv('Elective Constraints/trust_pop.csv') %>%
+FINAL_trust_pop <- read.csv('const/trust_pop.csv') %>%
   rename('trust_code'=TrustCode) %>%
   filter(CatchmentYear == 2020)
 
@@ -43,7 +42,7 @@ FINAL_org_mapping <- FINAL_org_mapping %>%
 
 #All the stuff here was deleted. I'm using a presaved version because
 #I don't have the energy to re-write it before DAP purges it again
-FINAL_workforce <- read.csv('Elective Constraints/FINAL_workforce.csv') %>%
+FINAL_workforce <- read.csv('const/FINAL_workforce.csv') %>%
   mutate(date = zoo::as.yearqtr(date))
 
 #clean names
@@ -69,10 +68,10 @@ rtt_urls <- c('https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-
               'https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2018-19/',
               'https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2020-21/')
 
-rtt_files <- get_links(rtt_urls,'Full-CSV-data')
+rtt_files <- GetLinks(rtt_urls,'Full-CSV-data')
 rtt_data <- sapply(rtt_files,
                    function(x){
-                     csv_from_zip(x)}
+                     UnzipCSV(x)}
 )
 
 #Cleans the underlying data to get what we want
@@ -106,7 +105,7 @@ names(FINAL_rtt) <- names(FINAL_rtt) %>% janitor::make_clean_names()
 #2) change in formatting messes up the read. 
 #This is a hackish approach i am aware :(
 op_url <- 'https://www.england.nhs.uk/statistics/statistical-work-areas/cancelled-elective-operations/supporting-facilities-data/'
-op_links <- get_links(op_url,'Operating-Theatres')
+op_links <- GetLinks(op_url,'Operating-Theatres')
 op_links <- op_links[!grepl("transparency", op_links)]
 op_links<-op_links[!grepl("-2013|-2012|-2014|-2015", op_links)]
 
@@ -139,10 +138,6 @@ FINAL_op_data <- op_raw_data %>%
   group_by(date,trust_code) %>%
   summarise(operating_theatres = sum(as.numeric(number_of_operating_theatres),na.rm=T))
 
-FINAL_op_data %>% ungroup()%>%unique() %>% tally()
-FINAL_op_data %>% ungroup()%>%tally()
-
-
 # Discharge Data ----------------------------------------------------------
 
 #NOTE: This is very messy. I don't suggest we use it. It only exists across a 3 year period,
@@ -150,7 +145,7 @@ FINAL_op_data %>% ungroup()%>%tally()
 
 # #Pull links and discharge data
 # discharge_url <- 'https://www.england.nhs.uk/statistics/statistical-work-areas/discharge-delays-acute-data/'
-# discharge_links <- get_links(discharge_url,'Daily-discharge-sitrep-monthly')
+# discharge_links <- GetLinks(discharge_url,'Daily-discharge-sitrep-monthly')
 # 
 # #Discharge data final output
 # discharge_data <- lapply(discharge_links,
@@ -190,14 +185,14 @@ diagnostic_urls <- c('https://www.england.nhs.uk/statistics/statistical-work-are
                      'https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/monthly-diagnostics-data-2018-19/')
 
 #Get the full extracts
-diagnostic_links <-get_links(diagnostic_urls,'full-extract')
+diagnostic_links <-GetLinks(diagnostic_urls,'full-extract')
 #Remove CDCs (should these be included?)
 diagnostic_links <- diagnostic_links[!grepl("CDC", diagnostic_links)]
 
 #Download everything
 raw_diagnostics_data <- sapply(diagnostic_links,
                 function(x){
-                  csv_from_zip(x)
+                  UnzipCSV(x)
                     })
 
 #Fix up data to be ready for use
@@ -226,42 +221,20 @@ names(FINAL_diagnostic_data) <- names(FINAL_diagnostic_data) %>% janitor::make_c
 # Bed occupancy --------------------------------------------
 
 #Same issue as workforce.
-FINAL_overnight_beds <- read.csv('Elective Constraints/FINAL_overnight_beds.csv') %>%
+FINAL_overnight_beds <- read.csv('const/FINAL_overnight_beds.csv') %>%
   mutate(date = zoo::as.yearqtr(date))
 
 # Sickness Rates ------
 
 #Same issue as above, copied from Open Data Collection Code
-FINAL_sickness <- read.csv('const/FINAL_sickness.csv')
-
-# AE target rate ------
-
-ae_url <- 'https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2018-19/'
-ae_urls2 <- GetLinks(ae_url,'ae-attendances-and-emergency-admissions')
-
-ae_links <- GetLinks(ae_urls2,'.csv')
-FINAL_ae_data <- lapply(ae_links,
-                       function(x){
-                         result <- data.table::fread(x) %>%
-                           janitor::clean_names() %>%
-                           mutate(total = across(contains(c('a_e_attendances_other','a_e_attendances_type','number_of_attendances'))) %>% rowSums(),
-                                  breach = across(contains(c('over_4hrs_other','over_4hrs_type'))) %>% rowSums(),
-                                  date = as.yearqtr(zoo::as.yearmon(substr(period,8,nchar(period)), '%B-%Y' ))
-                                  ) %>%
-                           rename('trust_code' = org_code) %>%
-                           select(date,trust_code,total,breach)
-                       }) %>%
-  rbindlist() %>%
-  group_by(date,trust_code) %>%
-  summarise(total = sum(total,na.rm=T),
-            breach = sum(breach,na.rm=T)) %>%
-  mutate(prop = breach/total)
+FINAL_sickness <- read.csv('const/FINAL_sickness.csv') %>%
+  mutate(date = zoo::as.yearqtr(date))
 
 #Covid bed occupancy -----
 
 covid_url <- 'https://www.england.nhs.uk/statistics/statistical-work-areas/covid-19-hospital-activity/'
 
-covid_links <- get_links(covid_url,'Covid-Publication')
+covid_links <- GetLinks(covid_url,'Covid-Publication')
 covid_links <- covid_links[!grepl("Supplementary", covid_links)]
 
 FINAL_covid <- lapply(covid_links,
@@ -288,22 +261,36 @@ FINAL_adjusted_los <- read.csv('const/los_age_complexity_adjusted.csv') %>%
   rename('trust_code'=PROCODE) %>%
   mutate(quarter = substr(cal_quarter,1,2),
          year = substr(cal_quarter,nchar(cal_quarter)-4,nchar(cal_quarter)),
-         date = as.yearqtr(paste0(year,' ',quarter))) %>%
+         date = zoo::as.yearqtr(paste0(year,' ',quarter))) %>%
   select(trust_code,date,standard_los)
 
 FINAL_unadjusted_los <- read.csv('const/los_unadjusted.csv') %>%
   rename('trust_code'=PROCODE) %>%
   mutate(quarter = substr(cal_quarter,1,2),
          year = substr(cal_quarter,nchar(cal_quarter)-4,nchar(cal_quarter)),
-         date = as.yearqtr(paste0(year,' ',quarter))) %>%
+         date = zoo::as.yearqtr(paste0(year,' ',quarter))) %>%
   select(trust_code,date,los_unadjusted)
 
 FINAL_proportions <- read.csv('const/elective_em_proportions.csv') %>%
   rename('trust_code'=PROCODE) %>%
   mutate(quarter = substr(cal_quarter,1,2),
          year = substr(cal_quarter,nchar(cal_quarter)-4,nchar(cal_quarter)),
-         date = as.yearqtr(paste0(year,' ',quarter))) %>%
+         date = zoo::as.yearqtr(paste0(year,' ',quarter))) %>%
   select(trust_code,date,elective_proportion,emergency_proportion)
+
+#AE
+
+FINAL_ae_data <- FINAL_ae_data %>%
+  mutate(date = zoo::as.yearqtr(period)) %>%
+  #rename('trust_code'=org_code) %>%
+  group_by(date,trust_code) %>%
+  summarise(ae_breaches = sum(ae_breaches,na.rm=T),
+            ae_attendances = sum(ae_attendances,na.rm=T),
+            ae_admissions = sum(ae_admissions,na.rm=T),
+            admission_breaches = sum(admission_breaches,na.rm=T)) %>%
+  mutate(admit_ratio = ae_admissions/(ae_attendances+ae_admissions),
+         breach_attend = ae_breaches/ae_attendances,
+         breach_admit=admission_breaches/ae_admissions)
 
 # Final data output ---------------------------------------------------------------------
 
@@ -313,6 +300,7 @@ FINAL_data <- purrr::reduce(list(
     dplyr::ungroup()%>%
     dplyr::filter(treatment_function_name == 'Total') %>%
     dplyr::select(!c(treatment_function_name,treatment_function_code)),
+  FINAL_ae_data,
   FINAL_diagnostic_data,
   FINAL_op_data,
   FINAL_overnight_beds,
