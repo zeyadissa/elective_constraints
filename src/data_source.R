@@ -282,7 +282,7 @@ FINAL_proportions <- read.csv('const/elective_em_proportions.csv') %>%
 
 FINAL_ae_data <- FINAL_ae_data %>%
   mutate(date = zoo::as.yearqtr(period)) %>%
-  #rename('trust_code'=org_code) %>%
+  rename('trust_code'=org_code) %>%
   group_by(date,trust_code) %>%
   summarise(ae_breaches = sum(ae_breaches,na.rm=T),
             ae_attendances = sum(ae_attendances,na.rm=T),
@@ -343,7 +343,8 @@ FINAL_regression_data <- FINAL_data %>%
     non_admitted_pathways = completed_pathways_for_non_admitted_patients,
     nurses_ratio = nurses/total_ftes,
     doctors_ratio = doctors/total_ftes,
-    senior_doctors_ratio = senior_doctors/total_ftes) %>%
+    senior_doctors_ratio = senior_doctors/total_ftes,
+    occupied_ratio = occupied_beds / bed_capacity) %>%
   dplyr::filter(nurses * doctors *total_ftes* non_admitted_pathways * admitted_pathways * trust_total_catchment *occupied_beds != 0) %>%
   dplyr::filter(admitted_pathways > 1000 & non_admitted_pathways > 1000) %>%
   filter(!trust_code %in% c('RRJ','RL1','RP6')) %>%
