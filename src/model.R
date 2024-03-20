@@ -1,5 +1,4 @@
 source('src/data_source.R')
-library(betareg)
 
 # Regression --------------------------------------------------------------
 
@@ -224,3 +223,23 @@ ggplot()+
   ylim(-0.1,0.1)
   
   
+#Mixed effects model (model 3)
+model3 <- lme4::lmer(
+  formula = 
+    total_pathways ~
+    scale(total_ftes) +
+    ratio+
+    scale(nurses_ratio) *
+    scale(senior_doctors_ratio)+
+    scale(managers)+
+    scale(operating_theatres)+ 
+    scale(all_diagnostics_tests) +
+    scale(occupied_beds)+
+    scale(covid_beds) +
+    covid_flag + 
+    (1|trust_code), 
+  offset = scale(trust_total_catchment),
+  data = FINAL_regression_datayr,
+  REML = T)
+
+  summary(model3)
