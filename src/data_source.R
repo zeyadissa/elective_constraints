@@ -17,7 +17,7 @@ library(Gini)
 
 source('https://raw.githubusercontent.com/zeyadissa/open_data/main/const/global_var.R')
 source('https://raw.githubusercontent.com/zeyadissa/open_data/main/src/functions.R')
-source('https://raw.githubusercontent.com/zeyadissa/open_data/main/src/ae_data.R')
+source('https://raw.githubusercontent.com/zeyadissa/open_data/main/src/ae.R')
 
 #Static catchment population data per trust: a better way to do this is to use the total admitted (?) or total
 #Served population from hes, but for now this will have to do for the offset.
@@ -472,7 +472,6 @@ FINAL_proportions <- read.csv('const/elective_em_proportions.csv') %>%
 
 FINAL_ae_data <- FINAL_ae_data %>%
   mutate(date = zoo::as.yearqtr(period)) %>%
-  rename('trust_code'=org_code) %>%
   group_by(date,trust_code) %>%
   summarise(ae_breaches = sum(ae_breaches,na.rm=T),
             ae_attendances = sum(ae_attendances,na.rm=T),
@@ -519,6 +518,7 @@ FINAL_data <- purrr::reduce(list(
   summarise_all(sum,na.rm=T) %>%
   dplyr::mutate(total_ftes2=total_ftes*sickness_rate)
 
+<<<<<<< HEAD
 
 FINAL_datayr <- FINAL_data %>%
   mutate(date = year(date))%>%
@@ -526,6 +526,8 @@ FINAL_datayr <- FINAL_data %>%
   summarise_all(sum,na.rm=T) %>%
   left_join(.,FINAL_backlog_data,by=c('trust_code','date'))
   
+=======
+>>>>>>> 5c6e4cc1dab4f5e36db7264a8406ec3e04ca1ee0
 #tidy format
 FINAL_tidy_data <- FINAL_data %>%
   tidyr::pivot_longer(cols=!c(date,trust_code,covid_flag),names_to='metric',values_to='values')

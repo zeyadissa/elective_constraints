@@ -1,4 +1,10 @@
 source('src/data_source.R')
+<<<<<<< HEAD
+=======
+library(betareg)
+library(marginaleffects)
+library(brms)
+>>>>>>> 5c6e4cc1dab4f5e36db7264a8406ec3e04ca1ee0
 
 # Regression --------------------------------------------------------------
 
@@ -116,21 +122,7 @@ performance::check_model(mixed_lmer)
 #probaly worth doing something about it at some point..
 mixed_lmer %>% anova()
 
-#model for ae
-#Mixed effects model (model 3)
-model3 <- lme4::lmer(
-  formula = 
-    (ae_breaches + admission_breaches) ~
-    scale(total_ftes) +
-    (occupied_ratio)+
-    admit_ratio +
-    covid_flag + 
-    (1|trust_code), 
-  offset = scale(trust_total_catchment),
-  data = FINAL_regression_data,
-  REML = T)
-
-summary(model3)
+#AE Model ------
 
 AE_regression_data <- FINAL_regression_data %>%
   mutate(percent_breach = (ae_breaches+admission_breaches)/(ae_attendances+ae_admissions),
@@ -142,6 +134,7 @@ AE_regression_data <- FINAL_regression_data %>%
     occupied_ratio > 0.75 & occupied_ratio <= 0.90 ~ 'Mid',
     occupied_ratio > 0.90 ~ 'Full'))
 
+<<<<<<< HEAD
 ae_model <- lme4::glmer(
   formula = 
     percent_breach ~
@@ -243,3 +236,5 @@ model3 <- lme4::lmer(
   REML = T)
 
   summary(model3)
+=======
+>>>>>>> 5c6e4cc1dab4f5e36db7264a8406ec3e04ca1ee0
