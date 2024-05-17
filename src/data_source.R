@@ -212,4 +212,4 @@ FINAL_regression_data <- FINAL_data %>%
   )
 
 #REMOVE ALL that aren't final. 
-rm(list=ls()[!grepl("FINAL_", ls())])
+rm(list=ls()[!grepl("FINAL_regression", ls())])
