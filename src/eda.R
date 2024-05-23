@@ -1,6 +1,7 @@
 ## eda data ------
 
-source('src/data_source.R')
+#source('src/data_source.R')
+data<-read.csv('const/regression_data.csv')
 
 eda_data <- data %>%
   mutate(
