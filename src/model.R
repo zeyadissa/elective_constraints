@@ -1,39 +1,16 @@
 source('src/data_source.R')
 
-library(betareg)
-library(marginaleffects)
-library(brms)
+cobb_douglas_pf <- formula(
+  #Cobb-Douglas is a simple Y(L,K) = C(L^a)(K^b) + C
+  #Reframed as Log(Y) = Log(C) + aLog(L) + bLog(K)
+  'log(admitted_pathways) ~ log(consultant) + log(total_diagnostic_tests) + (1|trust_code)'
+)
 
-data <- FINAL_regression_data %>%
-  mutate(
-    backlog = low + moderate + high + significant,
-    serious = significant + high,
-    non_serious = low + moderate,
-    ratio = ( serious / (non_serious) )
-  )
-
-#Mixed effects model (model 3)
+#Mixed Ef#Mixed Effects Cobb-Douglas Production Function; exponent approach?
 model3 <- lme4::lmer(
-  formula = 
-    total_pathways ~
-    scale(total_ftes) +
-    scale(nurses_ratio) *
-    scale(senior_doctors_ratio) +
-    scale(operating_theatres)+ 
-    scale(occupied_beds)+
-    scale(covid_beds)  +
-    ratio +
-    years_since_covid + 
-    (1|trust_code), 
-  offset = scale(trust_total_catchment),
-  data = data,
+  formula = cobb_douglas_pf,
+  data = final_data |> 
+    filter(admitted_pathways >= 1 & total_diagnostic_tests >= 1),
   REML = T)
 
-
-model3 %>% summary()
-model3 %>% performance::check_model()
-model3 %>% performance::check_autocorrelation()
-model3 %>% performance::check_collinearity()
-model3 %>% performance::check_heteroscedasticity()  
-model3 %>% performance::check_outliers()
-model3 %>% performance::model_performance()
+summary(model3)

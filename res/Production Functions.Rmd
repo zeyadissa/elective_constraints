@@ -1,0 +1,43 @@
+---
+title: "Production Functions"
+author: "Zeyad Issa"
+date: "2024-10-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Selection of a Production Function
+
+The identification of a production function is a relevant policy question given the increasing import of achieving constitutional standards.
+
+## Simple Cobb-Douglas
+
+A simple Cobb-Douglas can be given
+
+$Y(L,K) = L^\alpha K^\beta$
+
+Here we solve for, given $i$ is time and trust is $j$ - Conceptually what we are saying is tha
+
+$Y_{ij} = L_{ij}^\alpha K_{ij}^\beta +(1|j)$
+
+Consider, for example, a situation where
+
+```{}
+```
+
+```{r cars}
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
