@@ -1,15 +1,12 @@
 ## Mapping workforce and RTT specialties
 
 library(readxl)
-Matching_workforce_and_RTT_names <- read_excel("const/Matching workforce and RTT names.xlsx")
+library(dplyr)
 
 #Converting all characters to lowercase
-Matching_workforce_and_RTT_names2 <- Matching_workforce_and_RTT_names %>%
-  mutate(across(where(is.character), tolower))
 
 Workforce_names<-Workforce_names %>% 
   mutate(across(where(is.character), tolower))
-
 
 ## Workforce
 
@@ -19,6 +16,9 @@ workforce_data4 <- workforce_data %>%
 
 # Rename 'specialty' to 'Workforce' in workforce_data
 workforce_data4 <- workforce_data4 %>%
+  rename(Workforce = specialty)
+
+workforce_data<-workforce_data %>% 
   rename(Workforce = specialty)
 
 workforce_data4 <- workforce_data4 %>%
@@ -34,5 +34,10 @@ rtt_data2 <- rtt_data %>%
 rtt_data2<-rtt_data2 %>% 
   rename (RTT = treatment_function_name)
 
+RTT_names <- RTT_names %>%
+  mutate(across(where(is.character), tolower))
+
+rtt_data2$RTT <- tolower(rtt_data2$RTT)
+
 rtt_data2 <- rtt_data2 %>%
-  left_join(Matching_workforce_and_RTT_names2, by = "RTT", relationship = "many-to-many")
+  left_join(RTT_names, by = "RTT", relationship = "many-to-many")
