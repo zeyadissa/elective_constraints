@@ -183,7 +183,6 @@ operating_theatres_graph<-ggplot(operating_theatre_data,aes(x=date,y=operating_t
 
 ########### Ratio of completed pathways to incomplete pathways #############
 
-# Corrected code to calculate completed pathways for admitted and non-admitted patients by date
 elective_ratio <- rtt_data %>%
   group_by(date) %>%
   summarise(
@@ -230,7 +229,25 @@ elective_ratio_trusts_graph <- ggplot(elective_ratio_2_filtered, aes(x = date,
 
 ggsave(filename = "elective_ratio_trusts_graph.jpeg", plot = elective_ratio_trusts_graph, width = 10, height = 6, dpi = 300)
 
+elective_ratio_specialty <- rtt_data %>%
+  group_by(date,treatment_function_name) %>%
+  summarise(
+    completed_pathways_admitted = sum(completed_pathways_for_admitted_patients, na.rm = TRUE),
+    completed_pathways_nonadmitted = sum(completed_pathways_for_non_admitted_patients, na.rm = TRUE),
+    incomplete_pathways = sum(incomplete_pathways,na.rm = TRUE)) %>% 
+  mutate(complete_admitted_divided_incomplete_pathways = completed_pathways_admitted/incomplete_pathways)
 
+elective_ratio_specialty_graph <- ggplot(elective_ratio_specialty, aes(x = date, y = complete_admitted_divided_incomplete_pathways, group = treatment_function_name, color = treatment_function_name)) +
+  geom_line() +
+  labs(title = "Total Complete Admitted Pathways / Incomplete Pathways",
+       x = "Date",
+       y = "Ratio of Complete Admitted Pathways / Incomplete Pathways",
+       color = "Treatment Function Name") +  # Correct legend label for color
+  scale_y_continuous(labels = label_number()) +
+  theme_minimal()
+
+
+ggsave(filename = "elective_ratio_specialty_graph.jpeg", plot = elective_ratio_specialty_graph, width = 10, height = 6, dpi = 300)
 
 ########## Gini index #######
 
