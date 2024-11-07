@@ -53,4 +53,26 @@ gini_by_trust_specialty <- elective_workforce %>%
 
 ########### Relative value to 2019/20 ###########
 
+library(dplyr)
 
+divide_march_2019_and_2024 <- function(data, date_col, value_col, group_cols) {
+  data[[date_col]] <- as.Date(data[[date_col]])
+  
+  data_2019 <- data %>%
+    filter(format(!!sym(date_col), "%Y-%m") == "2019-03") %>%
+    mutate(day = format(!!sym(date_col), "%d")) %>%
+    select(all_of(group_cols), day, value_2019 = !!sym(value_col))
+  
+  data_2024 <- data %>%
+    filter(format(!!sym(date_col), "%Y-%m") == "2024-03") %>%
+    mutate(day = format(!!sym(date_col), "%d")) %>%
+    select(all_of(group_cols), day, value_2024 = !!sym(value_col))
+  
+  result <- data_2024 %>%
+    inner_join(data_2019, by = c(group_cols, "day"),relationship="many-to-many") %>%
+    mutate(result = value_2024 / value_2019) %>%
+
+  return(result)
+}
+
+rtt54<-divide_march_2019_and_2024 (rtt_data2,"date","incomplete_pathways",c("trust_code","Combined"))
