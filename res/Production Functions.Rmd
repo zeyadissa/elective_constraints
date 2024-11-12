@@ -25,7 +25,7 @@ $Y_{ij} = L_{ij}^\alpha K_{ij}^\beta +(1|j)$
 
 Consider, for example, a situation where
 
-```{}
+```         
 ```
 
 ```{r cars}

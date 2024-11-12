@@ -1,4 +1,5 @@
 GetData <- function() {
+  
   # read links
   # Note there is a very annoying amount of cleaning to do here
   # This is primarily due to the nature of what we're trying to get which is the med
@@ -7,6 +8,7 @@ GetData <- function() {
   workforce_url <- "https://digital.nhs.uk/data-and-information/publications/statistical/nhs-workforce-statistics"
 
   workforce_links1 <- Rpublic::extract_links(workforce_url, "nhs-workforce-statistics")
+  
   workforce_links2 <- purrr::map(
     .x = paste0("https://digital.nhs.uk/", workforce_links1),
     .f = Rpublic::extract_links,
@@ -35,10 +37,13 @@ GetData <- function() {
       Rpublic::extract_zipped(.x, pattern = "medical staff") |>
         CleanWorkforceData()
     }
-  ) |>
+  ) 
+  
+  workforce_data_final <- workforce_data |> 
+    purrr::keep(function(x) nrow(x) <= 20000 & nrow(x) != 0) |> 
     dplyr::bind_rows()
 
-  return(workforce_data)
+  return(workforce_data_final)
 }
 
 workforce_data <- GetData()
