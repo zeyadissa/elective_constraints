@@ -1,4 +1,4 @@
-source('src/data_source.R')
+source('src/create_regression_dataset.R')
 
 cobb_douglas_pf <- formula(
   #Cobb-Douglas is a simple Y(L,K) = C(L^a)(K^b) + C
