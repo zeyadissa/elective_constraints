@@ -25,7 +25,7 @@ GetData <- function() {
       data <- data |> 
         janitor::clean_names() |> 
         dplyr::mutate(date = zoo::as.yearqtr(date)) |> 
-        rename("trust_code" = organisation_code)
+        dplyr::rename("trust_code" = organisation_code)
       return(data)
     }
 
@@ -41,7 +41,8 @@ GetData <- function() {
     #summarise for ease of access
     dplyr::bind_rows() |> 
     dplyr::group_by(date, trust_code) |> 
-    dplyr::summarise(operating_theatres = sum(as.numeric(number_of_operating_theatres), na.rm = T))
+    dplyr::summarise(values = sum(as.numeric(number_of_operating_theatres), na.rm = T)) |> 
+    dplyr::mutate(metric = 'operating_theatres')
   
   #return for GetData()
   return(raw_ot_data)

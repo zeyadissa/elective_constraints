@@ -1,77 +1,74 @@
 #Functions -----
 
-CreateTimeSeriesIndex <- function(x){
+SummariseAcrossTrusts <- function(x){
   
-  total_data <- x |> 
+  intermed <- x |> 
     dplyr::group_by(date,treatment_function_code,metric) |> 
     dplyr::summarise(values = sum(values,na.rm=T)) |> 
-    dplyr::mutate(trust_code = 'All Trusts')
+    dplyr::mutate(trust_code = 'all_trusts')
   
-  final_data1 <- rbind(x,
-                      total_data)
+  out <- x |> 
+    rbind(intermed)
   
-  baseline_data <- final_data1 |> 
-    dplyr::filter(date == min(date,na.rm=T)) |> 
-    dplyr::rename(baseline_values = 'values') |> 
-    dplyr::select(!date)
-  
-  output <- final_data1 |> 
-    dplyr::left_join(baseline_data) |> 
-    dplyr::mutate(index = values / baseline_values)
-  
-  #Needed for geom_ribbon
-  output_quartiles <- output |> 
-    dplyr::filter(trust_code != 'All_Trusts') |> 
-    dplyr::group_by(date,treatment_function_code,metric) |> 
-    dplyr::summarise(
-      upper_quartile = quantile(index,0.75,na.rm=T),
-      lower_quartile = quantile(index,0.25,na.rm=T),
-      median = quantile(index,0.5,na.rm=T))
-  
-  final_output <- output |> 
-    dplyr::left_join(output_quartiles)
-    
-  return(final_output)
+  return(out)
   
 }
 
-CreateTimeSeriesGraph <- function(x,selected_metric,selected_specialty,select_title,select_subtitle = '',select_y_axis = ''){
+SummariseAcrossSpecialties <- function(x){
+  
+  intermed <- x |> 
+    dplyr::group_by(date,trust_code,metric) |> 
+    dplyr::summarise(values = sum(values,na.rm=T)) |> 
+    dplyr::mutate(treatment_function_code = 'all_specialties')
+  
+  out <- x |> 
+    rbind(intermed)
+  
+  return(out)
+  
+}
+
+CreateIndex <- function(x,index_year,groups = c('treatment_function_code','trust_code','metric')){
+  
+  baseline <- x |> 
+    dplyr::filter(date == min(date,na.rm=T)) |> 
+    dplyr::group_by(date,metric,trust_code,treatment_function_code) |> 
+    dplyr::summarise(baseline = sum(values,na.rm=T)) |> 
+    dplyr::ungroup() |> 
+    dplyr::select(!date)
+  
+  out <- x |> 
+    dplyr::left_join(baseline,
+                     by=groups) |> 
+    dplyr::mutate(index = values / baseline) |> 
+    dplyr::select(!baseline)
+    
+  return(out)
+  
+}
+
+CreateTimeSeriesGraph <- function(x,
+                                  selected_metric,
+                                  selected_trust,
+                                  selected_specialty,
+                                  select_title,
+                                  index_flag = T,
+                                  select_subtitle = '',
+                                  select_y_axis = ''){
   
   dat <- x |> 
     dplyr::filter(
-      metric == selected_metric &
-        treatment_function_code == selected_specialty)
+      metric %in% selected_metric &
+        treatment_function_code %in% selected_specialty &
+        trust_code %in% selected_trust)
   
   graph <- ggplot2::ggplot(data = dat) +
     ggplot2::geom_line(
       #Filter data for metric and treatment function code
       ggplot2::aes(x = date,
                    y = index,
-                   group = trust_code),
-      col = 'gray',
-      alpha = 0.15) + 
-    ggplot2::geom_line(
-      #Filter data for metric and treatment function code
-      ggplot2::aes(x = date,
-                   y = upper_quartile),
-      col = 'red',
-      linetype = 2) + 
-    ggplot2::geom_line(
-      #Filter data for metric and treatment function code
-      ggplot2::aes(x = date,
-                   y = lower_quartile),
-      col = 'red',
-      linetype = 2)+
-    ggplot2::geom_line(
-      data = dat |> 
-        dplyr::filter(trust_code == 'All Trusts'),
-      #Filter data for metric and treatment function code
-      ggplot2::aes(x = date,
-                   y = index),
-      col = 'red',
-      linewidth = 0.75,
-      linetype = 1)+
-    ggplot2::ylim(0,2) +
+                   col = metric),
+      alpha = 1) +
     ggplot2::theme_bw() +
     ggplot2::ggtitle(
       label = select_title,

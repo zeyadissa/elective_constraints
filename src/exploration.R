@@ -8,37 +8,23 @@
 #That would be great
 
 source('src/functions.R')
-rtt_data <- read.csv('const/raw_data/rtt_data.csv')
-
-test_dataset <- rtt_data |> 
-  dplyr::ungroup() |> 
-  #Wrangle for consistency; all files need to be in same format to be used
-  dplyr::select(date,
-                treatment_function_code,
-                trust_code,
-                completed_pathways_for_admitted_patients,
-                completed_pathways_for_non_admitted_patients) |> 
-  tidyr::pivot_longer(cols=-c(date,treatment_function_code,trust_code),names_to='metric',values_to='values') |> 
-  dplyr::mutate(trust_code = substr(trust_code,1,3),
-                date = lubridate::as_date(date)) |> 
-  dplyr::group_by(date,treatment_function_code,trust_code,metric) |> 
-  dplyr::summarise(values = sum(values,na.rm=T)) |> 
-  dplyr::ungroup() |> 
-  #from functions.R; note the behaviour.
-  CreateTimeSeriesIndex()
+#source('src/create_regression_dataset.R')
+final_dataset<-readRDS('const/results/regression_dataset.rds')
 
 # VISUALISATION 1: TIME SERIES TRENDS -------
 
 #Time series graph for all trusts. You can choose to do whatever. Note strike impact
 #Really interesting! Range between best and worst has also increased! Again, fascinating
 CreateTimeSeriesGraph(
-  x = test_dataset,
-  selected_metric = 'completed_pathways_for_non_admitted_patients',
-  selected_specialty = 'C_999',
+  x = final_dataset,
+  selected_trust = 'all_trusts',
+  selected_metric = c('Consultant',"Nurses & health visitors",'all_diagnostics_tests','operating_theatres'),
+  selected_specialty = c('all_specialties','C_999'),
   select_title = 'Completed non-admitted activity over time',
   select_subtitle = 'Changes in completed non-admitted elective activity (2018 = 100)',
   select_y_axis = 'Completed activity index (2018 = 100)'
-  )
+  )+
+  ggplot2::geom_hline(yintercept=1,linetype=2)
 
 # VISUALISATION 2: CHANGE IN GINI INDEX -------
 

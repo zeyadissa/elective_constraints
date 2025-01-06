@@ -34,7 +34,8 @@ GetData <- function(){
     unlist()
     
   #Remove CDCs (should these be included?)
-  diag_links <- diag_links2[!grepl("CDC", diag_links2)]
+  diag_links <- diag_links2[!grepl("CDC", diag_links2)] |> 
+    unique()
   
   #Download everything
   raw_diagnostics_data <- purrr::map(
