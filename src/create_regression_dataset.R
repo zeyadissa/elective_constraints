@@ -4,10 +4,11 @@ source('const/glob.R')
 source('src/functions.R')
 
 #RAW DATA (read for ease of access)
-source('src/create_data/create_rtt_data.R')
-source('src/create_data/create_diagnostics_data.R')
-source('src/create_data/create_workforce_data.R')
-source('src/create_data/create_operating_theatre_data')
+#source('src/create_data/create_rtt_data.R')
+#source('src/create_data/create_diagnostics_data.R')
+#source('src/create_data/create_workforce_data.R')
+#source('src/create_data/create_operating_theatre_data.R')
+source('src/create_data/create_eric_data.R')
 
 rtt_dataset <- readRDS('const/results/rtt_data.rds')
 diagnostic_data <- readRDS('const/results/diagnostic_data.rds')
@@ -108,12 +109,17 @@ operating_theatre_data <- op_theatre_data |>
   dplyr::ungroup() |> 
   CreateIndex() 
 
+eric_dataset <- eric_data |> 
+  SummariseAcrossTrusts() |> 
+  CreateIndex()
+
 final_dataset <- rbind(
   rtt_data,
   diagnostics_data,
   medical_workforce_data,
   non_medical_workforce_data,
-  operating_theatre_data
+  operating_theatre_data,
+  eric_dataset
 )
 
 saveRDS(final_dataset,'const/results/regression_dataset.rds')
