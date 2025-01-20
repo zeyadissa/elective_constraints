@@ -1,5 +1,16 @@
 #Functions -----
 
+CreatePOD <- function(x){
+
+  pod_name <- deparse(substitute(x))
+  
+  out <- x |> 
+    dplyr::mutate(pod = pod_name)
+  
+  return(out)
+  
+} 
+
 SummariseAcrossTrusts <- function(x){
   
   intermed <- x |> 

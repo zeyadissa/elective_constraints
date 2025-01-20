@@ -1,4 +1,6 @@
 org_url <- 'https://files.digital.nhs.uk/assets/ods/current/etr.zip'
+index_baseline_year <- 2019
+index_baseline_date <- lubridate::make_date(year=index_baseline_year,month=1,day=1)
 
 #urls
 pesa_url <- 'https://www.gov.uk/government/collections/public-expenditure-statistical-analyses-pesa'
