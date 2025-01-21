@@ -78,7 +78,8 @@ CreateTimeSeriesGraph <- function(x,
       #Filter data for metric and treatment function code
       ggplot2::aes(x = date,
                    y = index,
-                   col = metric),
+                   col = metric,
+                   linetype = trust_code),
       alpha = 1) +
     ggplot2::theme_bw() +
     ggplot2::ggtitle(

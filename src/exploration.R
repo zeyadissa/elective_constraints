@@ -15,7 +15,7 @@ final_dataset<-readRDS('const/results/regression_dataset.rds')
 
 #Time series graph for all trusts. You can choose to do whatever. Note strike impact
 #Really interesting! Range between best and worst has also increased! Again, fascinating
-CreateTimeSeriesGraph(
+graph_1 <- CreateTimeSeriesGraph(
   x = final_dataset,
   selected_trust = 'all_trusts',
   selected_metric = c(
@@ -33,7 +33,7 @@ CreateTimeSeriesGraph(
 
 #Time series graph for all trusts. You can choose to do whatever. Note strike impact
 #Really interesting! Range between best and worst has also increased! Again, fascinating
-CreateTimeSeriesGraph(
+graph_2 <- CreateTimeSeriesGraph(
   x = final_dataset,
   selected_trust = 'all_trusts',
   selected_metric = c(
@@ -74,7 +74,7 @@ test2 <- test |>
                   T ~ 'Labour'
                 ))
 
-ggplot2::ggplot() +
+graph_3 <- ggplot2::ggplot() +
   ggplot2::geom_col(
     data = test2 |> 
       dplyr::filter(metric %in% c(
@@ -102,6 +102,79 @@ ggplot2::ggplot() +
 
 # VISUALISATION 2: CHANGE IN GINI INDEX -------
 
+trust_analysis <- final_dataset |> 
+  dplyr::filter(
+    treatment_function_code %in% c('C_999','all_specialties'),
+    metric == 'completed_pathways_for_non_admitted_patients',
+  ) |> 
+  dplyr::group_by(trust_code) |> 
+  dplyr::filter(date %in% c(min(date,na.rm=T),max(date,na.rm=T))) |> 
+  dplyr::mutate(
+    date_type = dplyr::case_when(
+      date == min(date,na.rm=T) ~ 'first_date',
+      date == max(date,na.rm=T) ~ 'last_date'
+    )) |> 
+  dplyr::select(
+    date, trust_code,values,date_type
+  )
+
+trust_analysis2 <- trust_analysis |> 
+  dplyr::ungroup() |> 
+  dplyr::filter(date_type == 'first_date') |> 
+  dplyr::rename(initial_value = values,
+                initial_date = date) |> 
+  dplyr::select(!date_type) |> 
+  dplyr::left_join(
+    trust_analysis |> 
+      dplyr::ungroup() |> 
+      dplyr::filter(date_type == 'last_date') |> 
+      dplyr::rename(last_values = values,
+                    last_date = date) |> 
+      dplyr::select(!date_type),
+    by = c('trust_code')
+  ) |> 
+  dplyr::mutate(
+    diff_time = lubridate::interval(start=initial_date,end=last_date) %/% months(1),
+    cagr = (last_values / initial_value) ^ (1/diff_time)
+    ) |> 
+  dplyr::filter(initial_value > 100,
+                last_values > 100,
+                diff_time == 62)
+
+top_trusts <- trust_analysis2 |> 
+  dplyr::slice_max(cagr,n=20)
+  
+bottom_trusts <- trust_analysis2 |> 
+  dplyr::slice_min(cagr,n=20)
+  
+all_data <- final_dataset |> 
+  dplyr::mutate(
+    trust_code = dplyr::case_when(
+      trust_code %in% top_trusts$trust_code ~ 'top_10',
+      trust_code %in% bottom_trusts$trust_code ~ 'bottom_10',
+      T ~ 'other'
+    ),
+    date = zoo::as.yearmon(date)
+  ) |> 
+  dplyr::group_by(date,treatment_function_code,metric,trust_code,pod) |> 
+  dplyr::summarise(values = sum(values,na.rm=T)) |> 
+  dplyr::ungroup() |> 
+  CreateIndex()
+
+CreateTimeSeriesGraph(
+  x = all_data,
+  selected_trust = c('bottom_10','top_10'),
+  selected_metric = c(
+    'all_diagnostics_tests'),
+  selected_specialty = c('all_specialties','C_999'),
+  select_title = 'Elective Constraints',
+  select_subtitle = 'Labour determinants and constraints to elective activity (2019 = 100)',
+  select_y_axis = 'Index (2019 = 100)'
+)+
+  ggplot2::geom_hline(yintercept=1,linetype=2) 
+  ggplot2::ylim(0.75,1.5)
+
+  
 
 # VISUALISATION 3: DISTRIBUTION OF TRUSTS -------
 
