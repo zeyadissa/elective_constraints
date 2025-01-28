@@ -15,7 +15,7 @@ final_dataset<-readRDS('const/results/regression_dataset.rds')
 
 #Time series graph for all trusts. You can choose to do whatever. Note strike impact
 #Really interesting! Range between best and worst has also increased! Again, fascinating
-graph_1 <- CreateTimeSeriesGraph(
+CreateTimeSeriesGraph(
   x = final_dataset,
   selected_trust = 'all_trusts',
   selected_metric = c(
@@ -33,7 +33,7 @@ graph_1 <- CreateTimeSeriesGraph(
 
 #Time series graph for all trusts. You can choose to do whatever. Note strike impact
 #Really interesting! Range between best and worst has also increased! Again, fascinating
-graph_2 <- CreateTimeSeriesGraph(
+CreateTimeSeriesGraph(
   x = final_dataset,
   selected_trust = 'all_trusts',
   selected_metric = c(
@@ -137,9 +137,10 @@ trust_analysis2 <- trust_analysis |>
     diff_time = lubridate::interval(start=initial_date,end=last_date) %/% months(1),
     cagr = (last_values / initial_value) ^ (1/diff_time)
     ) |> 
-  dplyr::filter(initial_value > 100,
-                last_values > 100,
-                diff_time == 62)
+  dplyr::filter(initial_value > 1000,
+                last_values > 1000,
+                diff_time == 62,
+                trust_code != 'all_trusts')
 
 top_trusts <- trust_analysis2 |> 
   dplyr::slice_max(cagr,n=20)
@@ -164,17 +165,12 @@ all_data <- final_dataset |>
 CreateTimeSeriesGraph(
   x = all_data,
   selected_trust = c('bottom_10','top_10'),
-  selected_metric = c(
-    'all_diagnostics_tests'),
+  selected_metric = c("Consultant"),
   selected_specialty = c('all_specialties','C_999'),
   select_title = 'Elective Constraints',
   select_subtitle = 'Labour determinants and constraints to elective activity (2019 = 100)',
-  select_y_axis = 'Index (2019 = 100)'
-)+
-  ggplot2::geom_hline(yintercept=1,linetype=2) 
-  ggplot2::ylim(0.75,1.5)
-
-  
+  select_y_axis = 'Index (2019 = 100)')+
+  ggplot2::geom_hline(yintercept=1,linetype=2)
 
 # VISUALISATION 3: DISTRIBUTION OF TRUSTS -------
 
