@@ -2,6 +2,8 @@ org_url <- 'https://files.digital.nhs.uk/assets/ods/current/etr.zip'
 index_baseline_year <- 2019
 index_baseline_date <- lubridate::make_date(year=index_baseline_year,month=1,day=1)
 
+devtools::install_github('https://github.com/zeyadissa/Rpublic')
+
 #urls
 pesa_url <- 'https://www.gov.uk/government/collections/public-expenditure-statistical-analyses-pesa'
 tac_url <- 'https://www.england.nhs.uk/financial-accounting-and-reporting/nhs-providers-tac-data-publications/'
@@ -14,14 +16,6 @@ tac_18_url <- c('https://webarchive.nationalarchives.gov.uk/ukgwa/20200327162132
 tac_old_url <- 'https://www.gov.uk/government/collections/foundation-trust-consolidation-ftc-accounts-data'
 
 rtt_url <- 'https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/'
-
-#Urls for datasets
-rtt_urls <- c('https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2022-23/',
-              'https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2023-24/',
-              'https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2021-22/',
-              'https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2019-20/',
-              'https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2018-19/',
-              'https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2020-21/')
 
 #For whatever reason, they decided to bundle together multiple months in the same sheets,
 #But unhelpfully, they did not do this in a predictable manner. So each .zip would have
@@ -46,3 +40,4 @@ diag_url <- ('https://www.england.nhs.uk/statistics/statistical-work-areas/diagn
 therapy_url <- 'https://digital.nhs.uk/data-and-information/publications/statistical/nhs-talking-therapies-for-anxiety-and-depression-annual-reports'
 iapt_url <- 'https://digital.nhs.uk/data-and-information/publications/statistical/psychological-therapies-annual-reports-on-the-use-of-iapt-services'
 eric_url <- 'https://digital.nhs.uk/data-and-information/publications/statistical/estates-returns-information-collection'
+
